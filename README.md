@@ -14,4 +14,4 @@ const API_KEY = "YOUR_API_KEY";
 
 ## Demo
 
-![](https://github.com/ponnamkarthik/flutter-chatgpt-demo/raw/main/screenshots/demo.gif)
+![](https://github.com/ponnamkarthik/flutter-chatgpt-demo/raw/main/screenshots/demo.gif =300x)
