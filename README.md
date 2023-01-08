@@ -11,3 +11,7 @@ replace it int home_page.dart
 ```dart
 const API_KEY = "YOUR_API_KEY";
 ```
+
+## Demo
+
+![](https://github.com/ponnamkarthik/flutter-chatgpt-demo/demo.gif)
