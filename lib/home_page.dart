@@ -1,6 +1,7 @@
 import 'package:chat_gpt_flutter/chat_gpt_flutter.dart';
 import 'package:chatgpt_audio_text/chat_message.model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:text_to_speech/text_to_speech.dart';
@@ -164,6 +165,12 @@ class _ChatPageState extends State<ChatPage> {
     Future.delayed(const Duration(milliseconds: 50)).then((_) => _scrollDown());
   }
 
+  _copyMessage(String message) {
+    Clipboard.setData(ClipboardData(text: message)).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Message copied to clipboard")));
+    });
+  }
+
   void _initSpeech() async {
     _speechEnabled = await _speechToText.initialize(
       onError: (error) {
@@ -243,6 +250,9 @@ class _ChatPageState extends State<ChatPage> {
         return ChatMessageWidget(
           text: message.text,
           chatMessageType: message.chatMessageType,
+          onCopy: () {
+            _copyMessage(message.text);
+          },
         );
       },
     );
@@ -258,10 +268,16 @@ class _ChatPageState extends State<ChatPage> {
 }
 
 class ChatMessageWidget extends StatelessWidget {
-  const ChatMessageWidget({super.key, required this.text, required this.chatMessageType});
+  const ChatMessageWidget({
+    super.key,
+    required this.text,
+    required this.chatMessageType,
+    this.onCopy,
+  });
 
   final String text;
   final ChatMessageType chatMessageType;
+  final Function? onCopy;
 
   @override
   Widget build(BuildContext context) {
@@ -269,44 +285,60 @@ class ChatMessageWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 10.0),
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
       color: chatMessageType == ChatMessageType.bot ? botBackgroundColor : backgroundColor,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          chatMessageType == ChatMessageType.bot
-              ? Container(
-                  margin: const EdgeInsets.only(right: 16.0),
-                  child: CircleAvatar(
-                    backgroundColor: const Color.fromRGBO(16, 163, 127, 1),
-                    child: Image.asset(
-                      'assets/bot.png',
-                      color: Colors.white,
-                      scale: 1.5,
+      child: Stack(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              chatMessageType == ChatMessageType.bot
+                  ? Container(
+                      margin: const EdgeInsets.only(right: 16.0),
+                      child: CircleAvatar(
+                        backgroundColor: const Color.fromRGBO(16, 163, 127, 1),
+                        child: Image.asset(
+                          'assets/bot.png',
+                          color: Colors.white,
+                          scale: 1.5,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      margin: const EdgeInsets.only(right: 16.0),
+                      child: const CircleAvatar(
+                        child: Icon(
+                          Icons.person,
+                        ),
+                      ),
                     ),
-                  ),
-                )
-              : Container(
-                  margin: const EdgeInsets.only(right: 16.0),
-                  child: const CircleAvatar(
-                    child: Icon(
-                      Icons.person,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                      ),
+                      child: Text(
+                        text,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                  ),
-                  child: Text(
-                    text,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.copy),
+              iconSize: 16,
+              color: const Color.fromRGBO(142, 142, 160, 1),
+              onPressed: () {
+                onCopy?.call();
+              },
             ),
           ),
         ],
